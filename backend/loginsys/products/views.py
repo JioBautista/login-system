@@ -1,22 +1,20 @@
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
-from django.contrib.auth.models import User
-from users.serializers import UserSerializer
+from products.models import Products
+from products.serializers import ProductSerializer
+
 
 # Create your views here.
-
-
-# Create User View
 @api_view(["GET", "POST"])
-def users(request):
+def products(request):
     if request.method == "GET":
-        user = User.objects.all()
-        serializer = UserSerializer(user, many=True)
+        products = Products.objects.all()
+        serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
     if request.method == "POST":
-        serializer = UserSerializer(data=request.data)
+        serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
