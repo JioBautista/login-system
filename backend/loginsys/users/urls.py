@@ -1,4 +1,4 @@
 from django.urls import path
 from . import views
 
-urlpatterns = [path("login/", views.users, name="users")]
+urlpatterns = [path("users/", views.UserList.as_view())]

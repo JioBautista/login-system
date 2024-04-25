@@ -1,21 +1,37 @@
-from rest_framework.decorators import api_view
-from rest_framework import status
-from rest_framework.response import Response
-from products.models import Products
-from products.serializers import ProductSerializer
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+    BasePermission,
+)
+from .models import Products
+from .serializers import ProductSerializer
 
 
-# Create your views here.
-@api_view(["GET", "POST"])
-def products(request):
-    if request.method == "GET":
-        products = Products.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+class isManager(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.groups.filter(name="Managers").exists()
+        )
 
-    if request.method == "POST":
-        serializer = ProductSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class isClerk(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.groups.filter(name="Clerks").exists()
+        )
+
+
+class ProductsList(ListCreateAPIView):
+    permission_classes = [isManager | isClerk]
+    queryset = Products.objects.all()
+    serializer_class = ProductSerializer
+
+
+class ProductDetail(RetrieveUpdateDestroyAPIView):
+    permission_classes = [isManager]
+    queryset = Products.objects.all()
+    serializer_class = ProductSerializer
+    lookup_field = "pk"
